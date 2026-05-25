@@ -281,7 +281,11 @@ nav { position: sticky; top: 0; z-index: 200; background: rgba(6, 13, 15, 0.8); 
   <div class="modal-box">
     <button class="close-btn" style="background:rgba(255,0,0,0.2); color:#ff4d4d;" onclick="closeAndReset()">✕</button>
     <h2 style="font-family:'Cairo'; color:var(--c-primary); font-size:2rem; margin-bottom:10px;">عملية ناجحة! ✅</h2>
-    <p style="color:var(--text-muted); font-size:1rem;">تم تحميل الفاتورة الرسمية كصورة على جهازك.</p>
+    
+    <div style="background: rgba(212,168,67,0.1); border: 1px dashed var(--c-accent); padding: 10px; border-radius: 10px; margin-bottom: 10px;">
+      <p style="color:var(--c-accent); font-size:1rem; font-weight:bold; margin:0;">💡 لحفظ الفاتورة في الاستديو:</p>
+      <p style="color:var(--text-main); font-size:0.9rem; margin:0;">اضغط مطولاً على الصورة بالأسفل واختر "حفظ الصورة" أو "Save Image".</p>
+    </div>
     
     <img id="generated-invoice-img" src="" alt="فاتورة الطلب">
     
@@ -514,14 +518,16 @@ function generateInvoiceAndShowFinal() {
   html2canvas(captureDiv, { scale: 2, backgroundColor: '#ffffff' }).then(canvas => {
     const imgData = canvas.toDataURL('image/png');
     
-    // Set in modal
+    // وضع الصورة في النافذة ليتمكن المستخدم من رؤيتها والضغط عليها مطولاً
     document.getElementById('generated-invoice-img').src = imgData;
     
-    // Auto-download
-    let downloadLink = document.createElement('a');
-    downloadLink.href = imgData;
-    downloadLink.download = `فاتورة_مؤسسة_اللحام_${today.getTime()}.png`;
-    downloadLink.click();
+    // التحميل التلقائي للكمبيوتر فقط (لأن الهواتف تحفظها في الملفات وليس الاستديو)
+    if (!/Mobi|Android/i.test(navigator.userAgent)) {
+      let downloadLink = document.createElement('a');
+      downloadLink.href = imgData;
+      downloadLink.download = `فاتورة_مؤسسة_اللحام_${today.getTime()}.png`;
+      downloadLink.click();
+    }
 
     // Switch Modals
     closeModal('gw-modal');
