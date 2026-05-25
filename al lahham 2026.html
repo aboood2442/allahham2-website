@@ -1,0 +1,545 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>مؤسسة اللحام — النظام الرقمي الذكي</title>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;700;900&family=Tajawal:wght@300;400;500;700;800&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+/* ── THEME & VARIABLES ── */
+:root {
+  --bg-main: #060d0f;
+  --bg-card: rgba(15, 31, 35, 0.4);
+  --bg-blur: blur(20px);
+  --c-primary: #2ab4c8;
+  --c-primary-glow: rgba(42, 180, 200, 0.4);
+  --c-accent: #d4a843;
+  --text-main: #f0f8fa;
+  --text-muted: #8ba5ab;
+  --border-light: rgba(42, 180, 200, 0.15);
+  --border-hover: rgba(42, 180, 200, 0.5);
+  --radius-lg: 24px;
+  --radius-md: 16px;
+  --shadow-float: 0 20px 40px rgba(0,0,0,0.6);
+  --trans-smooth: all 0.4s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+html { scroll-behavior: smooth; }
+body { 
+  font-family: 'Tajawal', sans-serif; 
+  background: var(--bg-main); 
+  color: var(--text-main); 
+  overflow-x: hidden; 
+  min-height: 100vh;
+}
+
+/* ── ANIMATED BACKGROUND ── */
+body::after {
+  content: ''; position: fixed; top: -50%; left: -50%; width: 200%; height: 200%;
+  background: radial-gradient(circle at 50% 50%, rgba(13,96,112,0.1) 0%, transparent 50%),
+              radial-gradient(circle at 80% 20%, rgba(212,168,67,0.05) 0%, transparent 30%);
+  z-index: -1; pointer-events: none; animation: bgShift 20s ease-in-out infinite alternate;
+}
+@keyframes bgShift { 0% { transform: scale(1) translate(0, 0); } 100% { transform: scale(1.1) translate(-2%, 2%); } }
+
+/* ── CUSTOM SCROLLBAR ── */
+::-webkit-scrollbar { width: 8px; }
+::-webkit-scrollbar-track { background: var(--bg-main); }
+::-webkit-scrollbar-thumb { background: var(--c-primary); border-radius: 10px; }
+
+/* ── BUTTONS & EFFECTS ── */
+.btn {
+  position: relative; display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  cursor: pointer; font-family: 'Tajawal'; font-weight: 700; font-size: 1rem;
+  border: none; border-radius: 50px; padding: 14px 28px;
+  transition: var(--trans-smooth); overflow: hidden; outline: none; z-index: 1;
+}
+.btn::before {
+  content: ''; position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+  background: linear-gradient(120deg, transparent, rgba(255,255,255,0.2), transparent);
+  transform: translateX(-100%); transition: 0.6s; z-index: -1;
+}
+.btn:hover::before { transform: translateX(100%); }
+.btn:active { transform: scale(0.95); }
+
+.btn-primary { background: linear-gradient(135deg, #1d8fa0, #0d6070); color: #fff; box-shadow: 0 8px 20px var(--c-primary-glow); border: 1px solid var(--c-primary); }
+.btn-primary:hover { box-shadow: 0 12px 30px var(--c-primary-glow); transform: translateY(-3px); }
+.btn-outline { background: rgba(42,180,200,0.05); border: 1px solid var(--border-light); color: var(--c-primary); backdrop-filter: var(--bg-blur); }
+.btn-outline:hover { background: rgba(42,180,200,0.15); border-color: var(--c-primary); transform: translateY(-3px); }
+.btn-gold { background: linear-gradient(135deg, #f0c96a, #d4a843); color: #000; box-shadow: 0 8px 20px rgba(212,168,67,0.3); }
+
+/* ── TOASTS ── */
+#toast-container { position: fixed; bottom: 40px; left: 50%; transform: translateX(-50%); z-index: 9999; display: flex; flex-direction: column; gap: 12px; pointer-events: none; }
+.toast { background: rgba(10, 20, 22, 0.95); backdrop-filter: var(--bg-blur); border: 1px solid var(--c-primary); color: #fff; padding: 16px 24px; border-radius: var(--radius-md); font-weight: 700; display: flex; align-items: center; gap: 12px; box-shadow: var(--shadow-float); animation: slideUpBounce 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) forwards; }
+@keyframes slideUpBounce { 0% { opacity: 0; transform: translateY(40px) scale(0.8); } 100% { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes toastOut { to { opacity: 0; transform: translateY(-20px) scale(0.9); filter: blur(4px); } }
+
+/* ── NAVIGATION ── */
+nav { position: sticky; top: 0; z-index: 200; background: rgba(6, 13, 15, 0.8); backdrop-filter: blur(25px); border-bottom: 1px solid var(--border-light); padding: 0 5%; height: 80px; display: flex; align-items: center; justify-content: space-between; transition: 0.3s; }
+.nav-brand { display: flex; align-items: center; gap: 10px; cursor: pointer; }
+.brand-name { font-size: 1.4rem; font-weight: 900; background: linear-gradient(to right, var(--c-primary), #fff); -webkit-background-clip: text; -webkit-text-fill-color: transparent; font-family: 'Cairo'; letter-spacing: -0.5px; }
+.cart-trigger { background: rgba(42,180,200,0.08); border: 1px solid var(--border-light); border-radius: 50px; color: var(--text-main); display: flex; align-items: center; gap: 10px; padding: 10px 24px; cursor: pointer; font-family: 'Tajawal'; font-weight: 700; transition: var(--trans-smooth); }
+.cart-trigger:hover { background: rgba(42,180,200,0.15); border-color: var(--c-primary); }
+.cart-badge { background: var(--c-accent); color: #000; width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.85rem; font-weight: 900; transition: 0.3s; }
+.cart-badge.pop { animation: popBadge 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); background: var(--c-primary); color: #fff; }
+@keyframes popBadge { 0% { transform: scale(1); } 50% { transform: scale(1.5) rotate(10deg); } 100% { transform: scale(1); } }
+
+/* ── SHOP HEADER & FILTERS ── */
+.shop-header { text-align: center; padding: 60px 5% 30px; position: relative; }
+.shop-header h2 { font-family: 'Cairo'; font-size: 3rem; color: #fff; text-shadow: 0 0 20px var(--c-primary-glow); margin-bottom: 10px; letter-spacing: -1px; }
+.filters { display: flex; justify-content: center; gap: 12px; margin-top: 30px; flex-wrap: wrap; }
+.filter-btn { padding: 12px 28px; border-radius: 50px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-light); color: var(--text-muted); cursor: pointer; transition: var(--trans-smooth); font-family: 'Tajawal'; font-weight: 700; backdrop-filter: var(--bg-blur); }
+.filter-btn:hover { border-color: var(--c-primary); color: #fff; transform: translateY(-2px); }
+.filter-btn.act { background: var(--c-primary); color: #fff; border-color: var(--c-primary); box-shadow: 0 8px 20px var(--c-primary-glow); }
+
+/* ── PRODUCT GRID (GLASSMORPHISM) ── */
+.prod-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 30px; padding: 0 5% 80px; }
+.pcard { background: var(--bg-card); backdrop-filter: var(--bg-blur); border-radius: var(--radius-lg); border: 1px solid var(--border-light); padding: 24px; display: flex; flex-direction: column; transition: var(--trans-smooth); cursor: pointer; position: relative; overflow: hidden; }
+.pcard::before { content: ''; position: absolute; inset: 0; background: radial-gradient(circle at top right, rgba(42,180,200,0.1), transparent); opacity: 0; transition: 0.4s; }
+.pcard:hover { transform: translateY(-10px) scale(1.02); border-color: var(--border-hover); box-shadow: var(--shadow-float); }
+.pcard:hover::before { opacity: 1; }
+.pcard-img { font-size: 4.5rem; height: 140px; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); border-radius: var(--radius-md); margin-bottom: 20px; transition: var(--trans-smooth); }
+.pcard:hover .pcard-img { transform: scale(1.1) rotate(-5deg); }
+.pcard h3 { font-family: 'Cairo'; font-size: 1.3rem; margin-bottom: 10px; color: #fff; z-index: 1; }
+.price-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; z-index: 1; }
+.pcard-price { color: var(--c-accent); font-weight: 900; font-size: 1.4rem; }
+
+/* ── MODALS (SMOOTH SPRING) ── */
+.modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(10px); z-index: 1000; display: none; align-items: center; justify-content: center; padding: 20px; opacity: 0; transition: 0.3s; }
+.modal-overlay.act { display: flex; opacity: 1; }
+.modal-box { background: #0f1f23; border: 1px solid var(--border-hover); border-radius: var(--radius-lg); width: 100%; max-width: 480px; padding: 35px; position: relative; transform: scale(0.9) translateY(20px); transition: 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); box-shadow: var(--shadow-float); }
+.modal-overlay.act .modal-box { transform: scale(1) translateY(0); }
+.close-btn { position: absolute; top: 20px; left: 20px; background: rgba(255,255,255,0.05); border: none; color: #fff; width: 36px; height: 36px; border-radius: 50%; font-size: 1.2rem; cursor: pointer; transition: 0.3s; display: flex; justify-content: center; align-items: center;}
+.close-btn:hover { background: rgba(255,0,0,0.2); color: #ff4d4d; transform: rotate(90deg); }
+
+.opt-label { display: block; font-size: 0.95rem; color: var(--text-muted); margin-bottom: 12px; font-weight: 700; }
+.opt-flex { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 25px; }
+.opt-btn { padding: 10px 20px; background: rgba(0,0,0,0.3); border: 1px solid var(--border-light); color: var(--text-muted); border-radius: 12px; cursor: pointer; font-family: 'Tajawal'; font-weight: 700; transition: 0.2s; }
+.opt-btn:hover { border-color: rgba(255,255,255,0.3); color: #fff; }
+.opt-btn.sel { background: rgba(42,180,200,0.15); border-color: var(--c-primary); color: #fff; box-shadow: inset 0 0 15px rgba(42,180,200,0.2); }
+
+.qty-ctrl { display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.3); padding: 8px; border-radius: 16px; border: 1px solid var(--border-light); width: 140px; margin-bottom: 25px;}
+.qty-ctrl button { background: var(--bg-main); border: 1px solid var(--border-light); color: #fff; width: 40px; height: 40px; border-radius: 12px; cursor: pointer; font-size: 1.2rem; font-weight: bold; transition: 0.2s; }
+.qty-ctrl button:active { transform: scale(0.9); background: var(--c-primary); border-color: var(--c-primary); }
+.qty-ctrl span { font-weight: 900; font-size: 1.2rem; color: var(--c-accent); }
+
+/* ── CART DRAWER ── */
+.cart-drawer { position: fixed; top: 0; bottom: 0; right: -100%; width: 100%; max-width: 420px; background: rgba(10, 20, 22, 0.95); backdrop-filter: blur(30px); z-index: 1001; border-left: 1px solid var(--border-light); transition: right 0.5s cubic-bezier(0.2, 0.8, 0.2, 1); display: flex; flex-direction: column; box-shadow: -20px 0 50px rgba(0,0,0,0.7); }
+.cart-drawer.act { right: 0; }
+.cart-header { padding: 25px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: center; }
+.cart-body { padding: 25px; flex-grow: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 15px; }
+.cart-item { background: rgba(0,0,0,0.3); border: 1px solid var(--border-light); padding: 16px; border-radius: var(--radius-md); display: flex; justify-content: space-between; align-items: center; transition: 0.3s; }
+.cart-item:hover { border-color: var(--border-hover); background: rgba(42,180,200,0.05); }
+.cart-item h4 { font-family: 'Cairo'; font-size: 1.1rem; margin-bottom: 6px; }
+.cart-item-price { font-weight: 900; color: var(--c-accent); font-size: 1.2rem; margin-bottom: 8px;}
+.cart-item-del { background: rgba(255,0,0,0.1); color: #ff4d4d; border: 1px solid rgba(255,0,0,0.2); width: 36px; height: 36px; border-radius: 10px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center;}
+.cart-item-del:hover { background: #ff4d4d; color: #fff; }
+.cart-footer { padding: 25px; background: var(--bg-main); border-top: 1px solid var(--border-light); }
+
+/* ── REALISTIC CHECKOUT GATEWAY (RESTORED & UPGRADED) ── */
+#gw-modal .modal-box { padding: 0; background: #fff; color: #333; max-width: 450px; overflow: hidden; }
+.gw-header { background: #f8f9fa; padding: 20px; text-align: center; border-bottom: 1px solid #eee; position: relative; }
+.gw-header h3 { font-family: 'Cairo'; color: #111; font-weight: 900; }
+.gw-header p { font-size: 0.8rem; color: #28a745; margin-top: 5px; font-weight: bold; }
+.gw-body { padding: 30px; }
+.input-field { width: 100%; padding: 14px; background: #fff; border: 1px solid #ccc; color: #333; border-radius: 10px; font-family: 'Tajawal'; font-size: 1rem; outline: none; margin-bottom: 15px; transition: 0.3s; }
+.input-field:focus { border-color: var(--c-primary); box-shadow: 0 0 0 4px rgba(42,180,200,0.15); }
+.gw-amount { font-family: 'Cairo'; font-size: 2.2rem; font-weight: 900; color: #0d6070; text-align: center; margin-bottom: 25px; }
+
+/* Gateway Processing State */
+.gw-processing { display: none; text-align: center; padding: 40px 20px; flex-direction: column; align-items: center; gap: 20px; }
+.spinner { width: 60px; height: 60px; border: 5px solid #f3f3f3; border-top: 5px solid var(--c-primary); border-radius: 50%; animation: spin 1s linear infinite; }
+@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+
+/* ── INVOICE TEMPLATE (HIDDEN FOR SCREENSHOT) ── */
+#invoice-capture-area { position: absolute; top: -9999px; left: -9999px; width: 700px; background: #fff; color: #000; padding: 50px; font-family: 'Tajawal', sans-serif; box-sizing: border-box; direction: rtl; border: 1px solid #ddd; }
+.inv-header-box { text-align: center; border-bottom: 3px solid #0d6070; padding-bottom: 20px; margin-bottom: 30px; }
+.inv-header-box h1 { font-family: 'Cairo'; color: #0d6070; margin: 0; font-size: 2.5rem; font-weight: 900; }
+.inv-meta-row { display: flex; justify-content: space-between; margin-bottom: 30px; font-weight: 700; color: #444; font-size: 1.1rem; }
+.inv-table { width: 100%; border-collapse: collapse; margin-bottom: 30px; }
+.inv-table th { background: #0d6070; color: #fff; border: 1px solid #0d6070; padding: 12px; font-family: 'Cairo'; font-size: 1.1rem; }
+.inv-table td { border: 1px solid #ddd; padding: 12px; text-align: center; font-size: 1.1rem; }
+.inv-total-box { background: #f8f9fa; border: 2px dashed #0d6070; padding: 20px; text-align: left; font-size: 1.6rem; font-weight: 900; color: #000; font-family: 'Cairo'; border-radius: 10px; }
+.inv-footer-msg { text-align: center; margin-top: 40px; color: #666; font-size: 1rem; border-top: 1px solid #ccc; padding-top: 15px; }
+
+/* ── FINAL INVOICE MODAL ── */
+#final-invoice-modal .modal-box { max-width: 500px; text-align: center; }
+#generated-invoice-img { max-width: 100%; border-radius: 12px; border: 2px solid rgba(42,180,200,0.5); box-shadow: 0 10px 20px rgba(0,0,0,0.5); margin: 20px 0; }
+</style>
+</head>
+<body>
+
+<div id="toast-container"></div>
+
+<nav>
+  <a class="nav-brand" onclick="window.scrollTo(0,0)">
+    <div class="brand-name">مؤسسة اللحام</div>
+  </a>
+  <button class="cart-trigger" onclick="toggleCart()">
+    🛒 السلة <div class="cart-badge" id="cart-badge">0</div>
+  </button>
+</nav>
+
+<div>
+  <div class="shop-header">
+    <h2>المستودع الرقمي الذكي</h2>
+    <p style="color:var(--text-muted); font-size:1.1rem;">اختر المواصفات، أتمم الدفع، وأرسل الفاتورة الآلية لمعالجة طلبك فوراً.</p>
+    <div class="filters" id="cat-filters">
+      <button class="filter-btn act" onclick="filterCat('all', this)">جميع الأصناف</button>
+      <button class="filter-btn" onclick="filterCat('threads', this)">خيوط</button>
+      <button class="filter-btn" onclick="filterCat('zippers', this)">سحّابات</button>
+      <button class="filter-btn" onclick="filterCat('buttons', this)">أزرار</button>
+    </div>
+  </div>
+  <div class="prod-grid" id="product-list"></div>
+</div>
+
+<div class="modal-overlay" id="product-modal" onclick="if(event.target===this) closeModal('product-modal')">
+  <div class="modal-box">
+    <button class="close-btn" onclick="closeModal('product-modal')">✕</button>
+    <h2 style="font-family: 'Cairo'; font-size: 1.8rem; margin-bottom: 20px;" id="pm-title">اسم المنتج</h2>
+    <div class="opt-label">اللون المتوفر:</div><div class="opt-flex" id="pm-colors"></div>
+    <div class="opt-label">المقاس / الحجم:</div><div class="opt-flex" id="pm-sizes"></div>
+    <div class="opt-label">تحديد الكمية:</div>
+    <div class="qty-ctrl">
+      <button onclick="changeQty(-1)">-</button><span id="pm-qty">1</span><button onclick="changeQty(1)">+</button>
+    </div>
+    <button class="btn btn-primary" style="width:100%; height:55px; font-size:1.2rem;" onclick="addToCart()">إضافة للسلة 🛒</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="cart-overlay" onclick="if(event.target===this) toggleCart()"></div>
+<div class="cart-drawer" id="cart-drawer">
+  <div class="cart-header">
+    <h2 style="font-family: 'Cairo'; font-size:1.5rem; color: #fff;">🛒 سلة المشتريات</h2>
+    <button class="close-btn" style="position:static; background:rgba(255,255,255,0.1);" onclick="toggleCart()">✕</button>
+  </div>
+  <div class="cart-body" id="cart-items-container"></div>
+  <div class="cart-footer">
+    <div style="display:flex; justify-content:space-between; font-family:'Cairo'; font-size:1.4rem; font-weight:900; margin-bottom:20px;">
+      <span>الإجمالي:</span> <span id="cart-total-price" style="color:var(--c-accent);">0.00 د.أ</span>
+    </div>
+    <button class="btn btn-primary" style="width:100%; height:55px; font-size:1.2rem;" onclick="openCheckoutGateway()">متابعة الدفع وإصدار الفاتورة 🔒</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="gw-modal">
+  <div class="modal-box">
+    <button class="close-btn" style="color:#000; background:#eee;" onclick="closeModal('gw-modal')">✕</button>
+    
+    <div class="gw-header">
+      <h3>بوابة الدفع والإصدار الآمن</h3>
+      <p>🔒 اتصال مشفر 256-bit SSL</p>
+    </div>
+
+    <div class="gw-body" id="gw-form-area">
+      <div class="gw-amount" id="gw-display-amount">0.00 JOD</div>
+      
+      <label style="font-size:0.9rem; color:#666; font-weight:bold; margin-bottom:8px; display:block;">اسم المصنع / المشتري (للفاتورة):</label>
+      <input type="text" id="customer-name" class="input-field" placeholder="مثال: مصنع الأناقة..." required>
+      
+      <label style="font-size:0.9rem; color:#666; font-weight:bold; margin-bottom:8px; display:block;">طريقة الاستلام:</label>
+      <select id="checkout-delivery" class="input-field" onchange="updateGatewayTotal()">
+        <option value="pickup">استلام من المحل (مجاني)</option>
+        <option value="delivery">توصيل لمقر المصنع (+3 د.أ)</option>
+      </select>
+
+      <label style="font-size:0.9rem; color:#666; font-weight:bold; margin-bottom:8px; display:block;">طريقة الدفع:</label>
+      <select id="checkout-payment" class="input-field" onchange="switchPaymentUI()">
+        <option value="cliq">كليك (CliQ)</option>
+        <option value="visa">بطاقة ائتمانية (Visa / Mastercard)</option>
+        <option value="cash">نقداً عند الاستلام</option>
+      </select>
+
+      <div id="ui-cliq" style="background:#f8f9fa; padding:15px; border-radius:10px; text-align:center; margin-bottom:20px; border:1px solid #ddd;">
+        <span style="font-size:0.9rem; color:#555;">الرمز التعريفي (Alias):</span><br>
+        <strong style="font-size:1.5rem; color:#6f42c1; font-family:'Cairo';">ALLAHAM</strong>
+      </div>
+
+      <div id="ui-visa" style="display:none; margin-bottom:20px;">
+        <input type="text" class="input-field" placeholder="رقم البطاقة: 0000 0000 0000 0000" maxlength="19" style="margin-bottom:10px; direction:ltr;">
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:10px;">
+          <input type="text" class="input-field" placeholder="MM/YY" maxlength="5" style="margin-bottom:0; direction:ltr;">
+          <input type="password" class="input-field" placeholder="CVV" maxlength="3" style="margin-bottom:0; direction:ltr;">
+        </div>
+      </div>
+
+      <button class="btn btn-primary" style="width:100%; height:55px; font-size:1.2rem; border-radius:10px;" onclick="processPayment()">تأكيد وإصدار الفاتورة</button>
+    </div>
+
+    <div class="gw-processing" id="gw-processing">
+      <div class="spinner"></div>
+      <h3 style="font-family:'Cairo'; color:#111;">جاري التوثيق وإصدار الفاتورة...</h3>
+      <p style="color:#666;">الرجاء عدم إغلاق هذه النافذة.</p>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="final-invoice-modal">
+  <div class="modal-box">
+    <button class="close-btn" style="background:rgba(255,0,0,0.2); color:#ff4d4d;" onclick="closeAndReset()">✕</button>
+    <h2 style="font-family:'Cairo'; color:var(--c-primary); font-size:2rem; margin-bottom:10px;">عملية ناجحة! ✅</h2>
+    <p style="color:var(--text-muted); font-size:1rem;">تم تحميل الفاتورة الرسمية كصورة على جهازك.</p>
+    
+    <img id="generated-invoice-img" src="" alt="فاتورة الطلب">
+    
+    <p style="color:var(--c-accent); font-size:0.95rem; margin-bottom:20px; font-weight:bold;">الخطوة الأخيرة: أرسل الصورة لنا عبر واتساب لاعتماد وتجهيز الطلب فوراً.</p>
+    
+    <button class="btn" style="width:100%; height:55px; background:#25D366; color:#fff; font-size:1.2rem;" onclick="window.open('https://wa.me/962798363095?text=مرحباً، أرفق لكم صورة فاتورة طلبي التي تم إصدارها من النظام.', '_blank')">إرسال الفاتورة عبر واتساب 💬</button>
+  </div>
+</div>
+
+<div id="invoice-capture-area">
+  <div class="inv-header-box">
+    <h1>مؤسسة اللحام لبيع لوازم الخياطين</h1>
+  </div>
+  <div class="inv-meta-row">
+    <div id="inv-date">التاريخ: </div>
+    <div id="inv-customer">الزبون: </div>
+  </div>
+  <table class="inv-table">
+    <thead>
+      <tr>
+        <th>الرقم</th>
+        <th>وصف الصنف والمواصفات</th>
+        <th>الكمية</th>
+        <th>السعر</th>
+        <th>المجموع</th>
+      </tr>
+    </thead>
+    <tbody id="inv-tbody"></tbody>
+  </table>
+  <div style="margin-bottom: 20px; font-size:1.2rem;"><strong>تفاصيل التسليم: </strong><span id="inv-delivery"></span></div>
+  <div class="inv-total-box" id="inv-final-total">الإجمالي المستحق: 0.00 د.أ</div>
+  <div class="inv-footer-msg">فاتورة إلكترونية معتمدة - لا يعتبر الطلب نهائياً إلا بعد تأكيد استلام الصورة عبر الواتساب.</div>
+</div>
+
+<script>
+// ── TOAST SYSTEM ──
+function showToast(msg) {
+  const container = document.getElementById('toast-container');
+  const toast = document.createElement('div');
+  toast.className = 'toast'; toast.innerHTML = `✨ <div>${msg}</div>`;
+  container.appendChild(toast);
+  setTimeout(() => { 
+    toast.style.animation = 'toastOut 0.4s forwards'; 
+    setTimeout(() => toast.remove(), 400); 
+  }, 3000);
+}
+
+// ── DATABASE (Using Original Emojis) ──
+const inventory = [
+  { id: 1, cat: 'threads', name: 'خيوط بوليستر صناعية', price: 1.5, img: '🧵', colors: ['أسود', 'أبيض', 'كحلي', 'أحمر'], sizes: ['1000 متر', '5000 متر'] },
+  { id: 2, cat: 'zippers', name: 'سحاب عظم معدني YKK', price: 0.8, img: '🧲', colors: ['ذهبي', 'فضي', 'برونزي'], sizes: ['20 سم', '50 سم', '100 سم'] },
+  { id: 3, cat: 'buttons', name: 'أزرار صدف طبيعي', price: 0.1, img: '🔘', colors: ['أبيض لؤلؤي', 'أسود لامع'], sizes: ['12mm', '18mm', '24mm'] },
+  { id: 4, cat: 'zippers', name: 'سحاب مخفي للفساتين', price: 0.4, img: '👗', colors: ['أسود', 'أبيض', 'بيج'], sizes: ['40 سم', '60 سم'] },
+  { id: 5, cat: 'threads', name: 'خيط حرير للتطريز', price: 2.0, img: '🧶', colors: ['ذهبي', 'فضي', 'أخضر'], sizes: ['بكرة صغيرة'] },
+  { id: 6, cat: 'buttons', name: 'أزرار بلاستيك سادة', price: 0.05, img: '🕳️', colors: ['شفاف', 'أسود'], sizes: ['10mm', '14mm'] }
+];
+
+let cart = [], currentProduct = null, selectedColor = '', selectedSize = '', selectedQty = 1;
+let currentCartTotal = 0;
+
+// ── SHOP RENDER ──
+function filterCat(cat, btnElement) {
+  document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('act'));
+  if(btnElement) btnElement.classList.add('act');
+  const grid = document.getElementById('product-list'); 
+  grid.innerHTML = '';
+  
+  inventory.forEach((p, index) => {
+    if(cat === 'all' || p.cat === cat) {
+      grid.innerHTML += `
+        <div class="pcard" style="animation: slideUpBounce 0.${5 + index}s forwards; opacity:0;" onclick="openProduct(${p.id})">
+          <div class="pcard-img">${p.img}</div>
+          <h3>${p.name}</h3>
+          <div class="price-row">
+            <span class="pcard-price">${p.price.toFixed(2)} د.أ</span>
+            <span style="background: rgba(42,180,200,0.15); color: var(--c-primary); padding: 4px 12px; border-radius: 8px; font-weight: bold; font-size:0.8rem;">تحديد الخيارات</span>
+          </div>
+        </div>`;
+    }
+  });
+}
+
+function openProduct(id) {
+  currentProduct = inventory.find(p => p.id === id); selectedQty = 1;
+  selectedColor = currentProduct.colors[0]; selectedSize = currentProduct.sizes[0];
+  document.getElementById('pm-title').innerText = currentProduct.name;
+  document.getElementById('pm-qty').innerText = selectedQty;
+  document.getElementById('pm-colors').innerHTML = currentProduct.colors.map(c => `<button class="opt-btn ${c === selectedColor ? 'sel' : ''}" onclick="selectColor('${c}', this)">${c}</button>`).join('');
+  document.getElementById('pm-sizes').innerHTML = currentProduct.sizes.map(s => `<button class="opt-btn ${s === selectedSize ? 'sel' : ''}" onclick="selectSize('${s}', this)">${s}</button>`).join('');
+  document.getElementById('product-modal').classList.add('act');
+}
+
+function selectColor(c, btn) { selectedColor = c; document.querySelectorAll('#pm-colors .opt-btn').forEach(b => b.classList.remove('sel')); btn.classList.add('sel'); }
+function selectSize(s, btn) { selectedSize = s; document.querySelectorAll('#pm-sizes .opt-btn').forEach(b => b.classList.remove('sel')); btn.classList.add('sel'); }
+function changeQty(val) { if(selectedQty + val >= 1) { selectedQty += val; document.getElementById('pm-qty').innerText = selectedQty; } }
+function closeModal(id) { document.getElementById(id).classList.remove('act'); }
+
+// ── CART ──
+function addToCart() {
+  cart.push({ id: currentProduct.id, name: currentProduct.name, color: selectedColor, size: selectedSize, qty: selectedQty, price: currentProduct.price, total: currentProduct.price * selectedQty });
+  
+  const badge = document.getElementById('cart-badge');
+  badge.innerText = cart.length;
+  badge.classList.remove('pop'); void badge.offsetWidth; badge.classList.add('pop');
+  
+  closeModal('product-modal'); 
+  showToast(`تم إضافة ${selectedQty} وحدة من ${currentProduct.name}`);
+}
+
+function toggleCart() {
+  const drawer = document.getElementById('cart-drawer');
+  
+  // تحديث محتوى السلة فقط في حالة فتحها وليس إغلاقها
+  if (!drawer.classList.contains('act')) {
+    renderCart();
+  }
+  
+  // إظهار أو إخفاء السلة والخلفية المعتمة بشكل صحيح
+  document.getElementById('cart-overlay').classList.toggle('act');
+  drawer.classList.toggle('act');
+}
+
+function renderCart() {
+  const container = document.getElementById('cart-items-container');
+  if(cart.length === 0) { 
+    container.innerHTML = '<div style="text-align:center; padding-top:50px; opacity:0.5;"><div style="font-size:4rem; margin-bottom:15px;">🛒</div><p>السلة فارغة حالياً</p></div>'; 
+    document.getElementById('cart-total-price').innerText = '0.00 د.أ'; 
+    currentCartTotal = 0;
+    return; 
+  }
+  
+  let total = 0;
+  container.innerHTML = cart.map((item, i) => {
+    total += item.total;
+    return `<div class="cart-item">
+      <div><h4>${item.name}</h4><div style="font-size:0.85rem; color:var(--text-muted); margin-top:4px;">${item.color} | ${item.size} | الكمية: <strong style="color:#fff;">${item.qty}</strong></div></div>
+      <div style="text-align:left;"><div class="cart-item-price">${item.total.toFixed(2)} د.أ</div><button class="cart-item-del" onclick="removeFromCart(${i})">✕</button></div>
+    </div>`;
+  }).join('');
+  
+  currentCartTotal = total;
+  document.getElementById('cart-total-price').innerText = `${total.toFixed(2)} د.أ`;
+}
+
+function removeFromCart(i) {
+  cart.splice(i,1); renderCart(); 
+  const badge = document.getElementById('cart-badge');
+  badge.innerText = cart.length;
+  badge.classList.remove('pop'); void badge.offsetWidth; badge.classList.add('pop');
+}
+
+// ── REALISTIC CHECKOUT ──
+function openCheckoutGateway() {
+  if(cart.length === 0) { showToast('يرجى إضافة منتجات للسلة أولاً'); return; }
+  toggleCart(); // Hide Cart
+  
+  document.getElementById('gw-form-area').style.display = 'block';
+  document.getElementById('gw-processing').style.display = 'none';
+  
+  // Set initial total
+  updateGatewayTotal();
+  
+  document.getElementById('gw-modal').classList.add('act');
+}
+
+function switchPaymentUI() {
+  const val = document.getElementById('checkout-payment').value;
+  document.getElementById('ui-cliq').style.display = val === 'cliq' ? 'block' : 'none';
+  document.getElementById('ui-visa').style.display = val === 'visa' ? 'block' : 'none';
+}
+
+function updateGatewayTotal() {
+  let finalAmt = currentCartTotal;
+  if(document.getElementById('checkout-delivery').value === 'delivery') finalAmt += 3;
+  document.getElementById('gw-display-amount').innerText = `${finalAmt.toFixed(2)} JOD`;
+}
+
+function processPayment() {
+  const name = document.getElementById('customer-name').value.trim();
+  if(!name) { showToast('يرجى إدخال اسم المصنع / المشتري'); return; }
+
+  // Simulate Processing
+  document.getElementById('gw-form-area').style.display = 'none';
+  document.getElementById('gw-processing').style.display = 'flex';
+
+  setTimeout(() => {
+    generateInvoiceAndShowFinal();
+  }, 2000); // 2 Seconds realistic delay
+}
+
+// ── GENERATE INVOICE ──
+function generateInvoiceAndShowFinal() {
+  const customerName = document.getElementById('customer-name').value;
+  const deliveryVal = document.getElementById('checkout-delivery').value;
+  const deliveryText = deliveryVal === 'delivery' ? 'توصيل لمقر المصنع (+3 د.أ)' : 'استلام من المحل (مجاني)';
+  
+  // Fill Data
+  document.getElementById('inv-customer').innerText = `الزبون: ${customerName}`;
+  const today = new Date();
+  document.getElementById('inv-date').innerText = `التاريخ: ${today.toLocaleDateString('ar-JO')} ${today.toLocaleTimeString('ar-JO')}`;
+  document.getElementById('inv-delivery').innerText = deliveryText;
+  
+  const tbody = document.getElementById('inv-tbody');
+  tbody.innerHTML = '';
+  let finalTotal = 0;
+  
+  cart.forEach((item, index) => {
+    finalTotal += item.total;
+    tbody.innerHTML += `
+      <tr>
+        <td>${index + 1}</td>
+        <td><strong>${item.name}</strong><br><span style="color:#555; font-size:0.9rem;">اللون: ${item.color} | القياس: ${item.size}</span></td>
+        <td>${item.qty}</td>
+        <td>${item.price.toFixed(2)}</td>
+        <td><strong>${item.total.toFixed(2)}</strong></td>
+      </tr>
+    `;
+  });
+
+  if(deliveryVal === 'delivery') {
+    finalTotal += 3;
+    tbody.innerHTML += `<tr><td colspan="4" style="text-align:left;">رسوم التوصيل</td><td><strong>3.00</strong></td></tr>`;
+  }
+  
+  document.getElementById('inv-final-total').innerText = `الإجمالي المستحق: ${finalTotal.toFixed(2)} د.أ`;
+
+  // Capture Image
+  const captureDiv = document.getElementById('invoice-capture-area');
+  
+  html2canvas(captureDiv, { scale: 2, backgroundColor: '#ffffff' }).then(canvas => {
+    const imgData = canvas.toDataURL('image/png');
+    
+    // Set in modal
+    document.getElementById('generated-invoice-img').src = imgData;
+    
+    // Auto-download
+    let downloadLink = document.createElement('a');
+    downloadLink.href = imgData;
+    downloadLink.download = `فاتورة_مؤسسة_اللحام_${today.getTime()}.png`;
+    downloadLink.click();
+
+    // Switch Modals
+    closeModal('gw-modal');
+    document.getElementById('final-invoice-modal').classList.add('act');
+    
+    // Reset Cart
+    cart = []; document.getElementById('cart-badge').innerText = '0'; currentCartTotal = 0;
+    document.getElementById('customer-name').value = '';
+  });
+}
+
+function closeAndReset() {
+  closeModal('final-invoice-modal');
+  window.scrollTo(0,0);
+}
+
+// INIT
+filterCat('all', document.querySelector('.filter-btn.act'));
+</script>
+</body>
+</html>
